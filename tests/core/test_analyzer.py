@@ -5,7 +5,7 @@ import ast
 import pep8_scanner.rules.pep8.blank_lines  # noqa: F401
 import pep8_scanner.rules.pep8.line_length  # noqa: F401
 import pep8_scanner.rules.pep8.whitespace  # noqa: F401
-from pep8_scanner.core.analyzer import analyze_file, build_context
+from pep8_scanner.core.analyzer import analyze_file, build_context, run_rules
 
 
 def test_build_context_reads_file_and_parses_ast(tmp_path):
@@ -54,3 +54,13 @@ def test_analyze_file_without_profile_runs_all_registered_rules(tmp_path):
     violations = analyze_file(fichier)
 
     assert any(v.rule_code == "E501" for v in violations)
+
+
+def test_run_rules_reutilise_un_contexte_deja_construit(tmp_path):
+    fichier = tmp_path / "module.py"
+    fichier.write_text("x = 1   \n")
+    context = build_context(fichier)
+
+    violations = run_rules(context, profile="pep8")
+
+    assert any(v.rule_code == "W291" for v in violations)

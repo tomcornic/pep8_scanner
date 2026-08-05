@@ -26,12 +26,18 @@ def build_context(filepath) -> AnalysisContext:
     )
 
 
-def analyze_file(filepath, profile: Optional[str] = None) -> List[Violation]:
-    """Construit l'AnalysisContext du fichier puis exécute contre lui
-    toutes les règles du profil donné (ou toutes les règles enregistrées
-    si `profile` est None)."""
-    context = build_context(filepath)
+def run_rules(context: AnalysisContext, profile: Optional[str] = None) -> List[Violation]:
+    """Exécute contre un AnalysisContext déjà construit toutes les règles
+    du profil donné (ou toutes les règles enregistrées si `profile` est
+    None)."""
     violations: List[Violation] = []
     for rule_cls in registry.get_rules(profile=profile):
         violations.extend(rule_cls().check(context))
     return violations
+
+
+def analyze_file(filepath, profile: Optional[str] = None) -> List[Violation]:
+    """Construit l'AnalysisContext du fichier puis exécute les règles
+    contre lui (cf. `run_rules`)."""
+    context = build_context(filepath)
+    return run_rules(context, profile=profile)

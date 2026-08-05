@@ -62,7 +62,16 @@ def test_scan_project_signale_une_erreur_de_syntaxe_sans_planter(tmp_path):
 
     assert resultats["casse.py"].error is not None
     assert resultats["casse.py"].violations == []
+    assert resultats["casse.py"].loc == 0
     assert resultats["propre.py"].error is None
+
+
+def test_scan_project_expose_le_loc_par_fichier(tmp_path):
+    (tmp_path / "trois_lignes.py").write_text("x = 1\ny = 2\nz = 3\n")
+
+    resultats = resultats_par_nom(scan_project(tmp_path, profile="pep8"))
+
+    assert resultats["trois_lignes.py"].loc == 3
 
 
 def test_scan_project_leve_une_erreur_si_le_dossier_nexiste_pas(tmp_path):

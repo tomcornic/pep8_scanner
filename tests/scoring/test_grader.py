@@ -1,11 +1,13 @@
 import pytest
 
+from pep8_scanner.core.scanner import FileScanResult
 from pep8_scanner.rules.base import Severity, Violation
 from pep8_scanner.scoring.grader import (
     compute_weighted_density,
     grade_file,
     grade_from_density,
     grade_project,
+    grade_scan,
 )
 
 
@@ -65,3 +67,32 @@ def test_grade_project_agrege_toutes_les_violations_et_loc():
 
 def test_grade_project_sans_fichier_retourne_a():
     assert grade_project([]) == "A"
+
+
+def test_grade_scan_agrege_les_resultats_de_scan_project():
+    resultats = [
+        FileScanResult(
+            filepath="a.py", violations=[violation(Severity.CRITIQUE)], loc=50, error=None
+        ),
+        FileScanResult(
+            filepath="b.py", violations=[violation(Severity.CRITIQUE)], loc=50, error=None
+        ),
+    ]
+
+    assert grade_scan(resultats) == grade_project(
+        [([violation(Severity.CRITIQUE)], 50), ([violation(Severity.CRITIQUE)], 50)]
+    )
+
+
+def test_grade_scan_exclut_les_fichiers_en_erreur_de_syntaxe():
+    resultats = [
+        FileScanResult(filepath="propre.py", violations=[], loc=100, error=None),
+        FileScanResult(
+            filepath="casse.py",
+            violations=[],
+            loc=0,
+            error="invalid syntax",
+        ),
+    ]
+
+    assert grade_scan(resultats) == "A"

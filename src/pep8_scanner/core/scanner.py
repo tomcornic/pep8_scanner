@@ -3,7 +3,7 @@
 from pathlib import Path
 from typing import List, NamedTuple, Optional
 
-from pep8_scanner.core.analyzer import analyze_file
+from pep8_scanner.core.analyzer import build_context, run_rules
 from pep8_scanner.rules.base import Violation
 
 EXCLUDED_DIR_NAMES = {"__pycache__"}
@@ -12,6 +12,7 @@ EXCLUDED_DIR_NAMES = {"__pycache__"}
 class FileScanResult(NamedTuple):
     filepath: str
     violations: List[Violation]
+    loc: int
     error: Optional[str]
 
 
@@ -45,13 +46,22 @@ def scan_project(root_path, profile: Optional[str] = None) -> List[FileScanResul
     results = []
     for filepath in find_python_files(root):
         try:
-            violations = analyze_file(filepath, profile=profile)
+            context = build_context(filepath)
         except SyntaxError as exc:
             results.append(
-                FileScanResult(filepath=str(filepath), violations=[], error=str(exc))
+                FileScanResult(
+                    filepath=str(filepath), violations=[], loc=0, error=str(exc)
+                )
             )
-        else:
-            results.append(
-                FileScanResult(filepath=str(filepath), violations=violations, error=None)
+            continue
+
+        violations = run_rules(context, profile=profile)
+        results.append(
+            FileScanResult(
+                filepath=str(filepath),
+                violations=violations,
+                loc=len(context.lines),
+                error=None,
             )
+        )
     return results

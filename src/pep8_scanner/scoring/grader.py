@@ -2,6 +2,7 @@
 
 from typing import Iterable, List, Tuple
 
+from pep8_scanner.core.scanner import FileScanResult
 from pep8_scanner.rules.base import Violation
 
 LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -43,3 +44,12 @@ def grade_project(file_reports: Iterable[Tuple[List[Violation], int]]) -> str:
         toutes_violations.extend(violations)
         loc_total += loc
     return grade_file(toutes_violations, loc_total)
+
+
+def grade_scan(results: Iterable[FileScanResult]) -> str:
+    """Note globale à partir des résultats de `scan_project()`. Les
+    fichiers en erreur de syntaxe sont exclus du calcul (pas de LOC
+    fiable pour eux)."""
+    return grade_project(
+        (r.violations, r.loc) for r in results if r.error is None
+    )
