@@ -6,6 +6,8 @@ import pep8_scanner.rules.pep8.blank_lines  # noqa: F401
 import pep8_scanner.rules.pep8.line_length  # noqa: F401
 import pep8_scanner.rules.pep8.whitespace  # noqa: F401
 from pep8_scanner.core.analyzer import analyze_file, build_context, run_rules
+from pep8_scanner.core.config import ScanConfig
+from pep8_scanner.rules.base import Severity
 
 
 def test_build_context_reads_file_and_parses_ast(tmp_path):
@@ -64,3 +66,38 @@ def test_run_rules_reutilise_un_contexte_deja_construit(tmp_path):
     violations = run_rules(context, profile="pep8")
 
     assert any(v.rule_code == "W291" for v in violations)
+
+
+def test_run_rules_ignore_les_regles_listees_dans_la_config(tmp_path):
+    fichier = tmp_path / "module.py"
+    fichier.write_text("x = 1   \n")
+    context = build_context(fichier)
+    config = ScanConfig(ignored_rules=frozenset({"W291"}), severity_overrides={})
+
+    violations = run_rules(context, profile="pep8", config=config)
+
+    assert all(v.rule_code != "W291" for v in violations)
+
+
+def test_run_rules_applique_le_poids_de_gravite_personnalise(tmp_path):
+    fichier = tmp_path / "module.py"
+    fichier.write_text("x = 1   \n")
+    context = build_context(fichier)
+    config = ScanConfig(
+        ignored_rules=frozenset(), severity_overrides={"W291": Severity.CRITIQUE}
+    )
+
+    violations = run_rules(context, profile="pep8", config=config)
+
+    w291 = next(v for v in violations if v.rule_code == "W291")
+    assert w291.severity == Severity.CRITIQUE
+
+
+def test_analyze_file_propage_la_config(tmp_path):
+    fichier = tmp_path / "module.py"
+    fichier.write_text("x = 1   \n")
+    config = ScanConfig(ignored_rules=frozenset({"W291"}), severity_overrides={})
+
+    violations = analyze_file(fichier, profile="pep8", config=config)
+
+    assert violations == []

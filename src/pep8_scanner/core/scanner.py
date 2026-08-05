@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, NamedTuple, Optional
 
 from pep8_scanner.core.analyzer import build_context, run_rules
+from pep8_scanner.core.config import DEFAULT_CONFIG, ScanConfig
 from pep8_scanner.rules.base import Violation
 
 EXCLUDED_DIR_NAMES = {"__pycache__"}
@@ -33,10 +34,16 @@ def find_python_files(root_path) -> List[Path]:
     )
 
 
-def scan_project(root_path, profile: Optional[str] = None) -> List[FileScanResult]:
+def scan_project(
+    root_path,
+    profile: Optional[str] = None,
+    config: ScanConfig = DEFAULT_CONFIG,
+) -> List[FileScanResult]:
     """Analyse récursivement un dossier projet et retourne un résultat
     par fichier .py trouvé. Un fichier avec une erreur de syntaxe est
-    signalé via le champ `error` plutôt que d'interrompre le scan."""
+    signalé via le champ `error` plutôt que d'interrompre le scan. La
+    config (règles ignorées, poids personnalisés) est appliquée à chaque
+    fichier (cf. core/config.py)."""
     root = Path(root_path)
     if not root.is_dir():
         raise NotADirectoryError(
@@ -55,7 +62,7 @@ def scan_project(root_path, profile: Optional[str] = None) -> List[FileScanResul
             )
             continue
 
-        violations = run_rules(context, profile=profile)
+        violations = run_rules(context, profile=profile, config=config)
         results.append(
             FileScanResult(
                 filepath=str(filepath),

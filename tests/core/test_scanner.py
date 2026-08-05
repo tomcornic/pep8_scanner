@@ -6,7 +6,9 @@ import pytest
 # ce module de test soit indépendant de l'ordre de collecte de pytest.
 import pep8_scanner.rules.pep8.line_length  # noqa: F401
 import pep8_scanner.rules.pep8.whitespace  # noqa: F401
+from pep8_scanner.core.config import ScanConfig
 from pep8_scanner.core.scanner import find_python_files, scan_project
+from pep8_scanner.rules.base import Severity
 
 
 def resultats_par_nom(resultats):
@@ -79,3 +81,24 @@ def test_scan_project_leve_une_erreur_si_le_dossier_nexiste_pas(tmp_path):
 
     with pytest.raises(NotADirectoryError):
         scan_project(inexistant)
+
+
+def test_scan_project_applique_la_config_ignored_rules(tmp_path):
+    (tmp_path / "sale.py").write_text("x = 1   \n")
+    config = ScanConfig(ignored_rules=frozenset({"W291"}), severity_overrides={})
+
+    resultats = resultats_par_nom(scan_project(tmp_path, profile="pep8", config=config))
+
+    assert resultats["sale.py"].violations == []
+
+
+def test_scan_project_applique_la_config_severity_overrides(tmp_path):
+    (tmp_path / "sale.py").write_text("x = 1   \n")
+    config = ScanConfig(
+        ignored_rules=frozenset(), severity_overrides={"W291": Severity.CRITIQUE}
+    )
+
+    resultats = resultats_par_nom(scan_project(tmp_path, profile="pep8", config=config))
+
+    w291 = next(v for v in resultats["sale.py"].violations if v.rule_code == "W291")
+    assert w291.severity == Severity.CRITIQUE
