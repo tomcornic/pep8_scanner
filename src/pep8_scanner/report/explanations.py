@@ -72,6 +72,80 @@ EXPLANATIONS = {
         example_incorrect="x = 1\n\n\n",
         example_correct="x = 1\n",
     ),
+    "E301": Explanation(
+        summary="1 ligne vide attendue avant une méthode, absente.",
+        why=(
+            "Le PEP 8 impose 1 ligne vide entre les méthodes d'une classe, "
+            "pour les séparer visuellement sans les isoler autant que des "
+            "définitions top-level (2 lignes, cf. E302)."
+        ),
+        example_incorrect=(
+            "class C:\n"
+            "    def premiere(self):\n"
+            "        pass\n"
+            "    def seconde(self):\n"
+            "        pass\n"
+        ),
+        example_correct=(
+            "class C:\n"
+            "    def premiere(self):\n"
+            "        pass\n"
+            "\n"
+            "    def seconde(self):\n"
+            "        pass\n"
+        ),
+    ),
+    "E303": Explanation(
+        summary="Trop de lignes vides consécutives (plus de 2).",
+        why=(
+            "Au-delà de 2 lignes vides consécutives, l'espacement devient "
+            "excessif et nuit à la lisibilité sans apporter de séparation "
+            "visuelle supplémentaire utile."
+        ),
+        example_incorrect="x = 1\n\n\n\ny = 2\n",
+        example_correct="x = 1\n\n\ny = 2\n",
+    ),
+    "W292": Explanation(
+        summary="Pas de retour à la ligne en fin de fichier.",
+        why=(
+            "Un fichier texte POSIX doit se terminer par un caractère de "
+            "fin de ligne : cela évite des problèmes de concaténation ou "
+            "d'affichage avec certains outils en ligne de commande."
+        ),
+        example_incorrect="x = 1",
+        example_correct="x = 1\n",
+    ),
+    "E401": Explanation(
+        summary="Plusieurs imports sur une même ligne.",
+        why=(
+            "Un import par ligne facilite la lecture des diffs (ajout/"
+            "suppression d'une dépendance = une seule ligne modifiée) et "
+            "la recherche d'un import donné."
+        ),
+        example_incorrect="import os, sys\n",
+        example_correct="import os\nimport sys\n",
+    ),
+    "E711": Explanation(
+        summary="Comparaison à None avec '==' ou '!=' au lieu de 'is'/'is not'.",
+        why=(
+            "None est un singleton en Python : le comparer avec 'is' est "
+            "plus explicite et évite les surprises si un objet redéfinit "
+            "'__eq__' de façon inattendue."
+        ),
+        example_incorrect="if x == None:\n    pass\n",
+        example_correct="if x is None:\n    pass\n",
+    ),
+    "E722": Explanation(
+        summary="'except:' nu, sans type d'exception précisé.",
+        why=(
+            "Un 'except:' nu attrape aussi les exceptions systèmes "
+            "(KeyboardInterrupt, SystemExit) et masque des bugs "
+            "inattendus. Préciser le(s) type(s) d'exception attendu(s) "
+            "rend la gestion d'erreur intentionnelle et explicite."
+        ),
+        example_incorrect="try:\n    pass\nexcept:\n    pass\n",
+        example_correct="try:\n    pass\nexcept ValueError:\n    pass\n",
+    ),
 }
 
 
